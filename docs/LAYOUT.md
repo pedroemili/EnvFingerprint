@@ -8,7 +8,7 @@ internal/cli/           Dispatch de subcomandos, flags, ayuda, códigos de salid
 internal/model/         Contratos de datos (huella, reglas, diff) + validación.
 internal/collector/     Recolección de hechos (system, tools, files, variables) vía interfaces Env/Proc/FS.
 internal/fingerprint/   Proyección, serialización canónica y hash SHA-256 reproducible (Policy explícita).
-internal/compare/       (pendiente) Comparación estructural de huellas.
+internal/compare/       Motor de comparación (Compare, FormatHuman); severidades info/warning/error.
 internal/redact/        Clasificador de sensibilidad + Scrub (barrera antes de serializar).
 internal/rules/         (pendiente) Evaluación de reglas del proyecto.
 internal/report/        (pendiente) Informes legibles (md/txt).

@@ -32,7 +32,6 @@ func TestPendingCommandsEndToEnd(t *testing.T) {
 	// Commands whose engines are pending report it explicitly instead of
 	// silently doing nothing.
 	steps := [][]string{
-		{"compare", "--exit-code", "fp-a.json", "fp-b.json"},
 		{"check", "--rules", "rules.json"},
 		{"report", "--format", "md", "fp.json"},
 	}

@@ -151,12 +151,16 @@ usuario, hostname ni direcciones IP. Si en el futuro se añaden (p. ej. un campo
   "schema": 1,
   "equal": false,
   "compatible": true,
-  "notes": ["variables.DATABASE_URL es sensible: comparada solo por presencia"],
+  "notes": ["variables.DATABASE_URL: sensible, comparada solo por presencia"],
   "changes": [
-    { "path": "environment.profile", "kind": "modified", "a": "local", "b": "ci" },
-    { "path": "runtimes[go]", "kind": "modified", "a": "1.22.5", "b": "1.23.2" },
-    { "path": "files[package-lock.json].present", "kind": "removed", "a": "true" },
-    { "path": "variables[CACHE_DIR].state", "kind": "modified", "a": "absent", "b": "present" }
+    { "path": "environment.profile", "kind": "modified", "severity": "info",
+      "description": "el perfil del entorno difiere en profile", "a": "local", "b": "ci" },
+    { "path": "files[package-lock.json]", "kind": "removed", "severity": "info",
+      "description": "el archivo package-lock.json no fue comprobado en la huella B", "a": "false" },
+    { "path": "runtimes[go].version", "kind": "modified", "severity": "warning",
+      "description": "la versión de go difiere entre entornos", "a": "1.22.5", "b": "1.23.2" },
+    { "path": "variables[CACHE_DIR].state", "kind": "modified", "severity": "warning",
+      "description": "la variable CACHE_DIR está presente en un entorno y ausente en el otro", "a": "absent", "b": "present" }
   ]
 }
 ```
@@ -168,10 +172,16 @@ usuario, hostname ni direcciones IP. Si en el futuro se añaden (p. ej. un campo
 | `compatible` | `false` si las huellas tienen `schema` o `hashAlgorithm` distintos; en ese caso `changes` puede estar incompleto y debe aparecer una nota. |
 | `notes[]` | Aclaraciones para humanos (comparaciones degradadas, secciones ignoradas, sensibles). Nunca contienen valores sensibles. |
 | `changes[].path` | Ruta estable del campo: `seccion`, `seccion.campo`, `seccion[clave].campo`. Las claves de `runtimes`, `files` y `variables` son `name`, `path` y `key` respectivamente. |
-| `changes[].kind` | `added` \| `removed` \| `modified`. |
+| `changes[].kind` | `added` \| `removed` \| `modified` \| `unknown`. `unknown` = no comparable por falta de información (p. ej. solo una parte permite comparación por valor); **no** cuenta como diferencia para `equal` ni para el exit code. |
+| `changes[].severity` | `info` \| `warning` \| `error`. `error` solo cuando una regla declarada lo respalda (variable requerida ausente, herramienta declarada ausente, `minVersion` incumplido, esquema incompatible). Sin reglas, ninguna diferencia es `error` por defecto. |
+| `changes[].description` | Descripción legible del hecho observado; nunca especula causas. |
+| `changes[].rule` | Regla relacionada (p. ej. `variables.required`, `tools[node].minVersion`), si existe. |
+| `changes[].advice` | Recomendación de diagnóstico respaldada por la información disponible; vacía si no hay fundamento. |
 | `changes[].a` / `.b` | Valores como strings ya normalizados; ausentes según `kind`. Jamás valores de variables sensibles. |
 
-Orden de `changes`: por `path` ascendente (determinista, apto para snapshots en tests).
+Orden de `changes`: por `path` ascendente sin duplicados (determinista, apto para snapshots en tests). `notes` ordenado alfabéticamente.
+
+**Códigos de salida de `compare`**: sin `--exit-code`, 0 salvo error de ejecución; con `--exit-code`, 0 sin diferencias, 1 si hay cambios (los `unknown` no cuentan), 2 si las huellas son incompatibles (`schema`/`hashAlgorithm` distintos) o hay errores de lectura/validación.
 
 ---
 

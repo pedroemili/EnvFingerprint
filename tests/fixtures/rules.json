@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "variables": {
+    "required": ["DATABASE_URL", "CFG_MODE"]
+  },
+  "tools": [
+    { "name": "node", "minVersion": "20.0.0" },
+    { "name": "python" }
+  ]
+}

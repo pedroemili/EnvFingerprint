@@ -14,11 +14,15 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["path", "kind"],
+        "required": ["path", "kind", "severity", "description"],
         "additionalProperties": false,
         "properties": {
           "path": { "type": "string", "minLength": 1 },
-          "kind": { "enum": ["added", "removed", "modified"] },
+          "kind": { "enum": ["added", "removed", "modified", "unknown"] },
+          "severity": { "enum": ["info", "warning", "error"] },
+          "description": { "type": "string", "minLength": 1 },
+          "rule": { "type": "string" },
+          "advice": { "type": "string" },
           "a": { "type": "string" },
           "b": { "type": "string" }
         }

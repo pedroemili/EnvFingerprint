@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "tool": { "name": "envfingerprint", "version": "0.1.0" },
+  "environment": {
+    "profile": "ci",
+    "os": "linux",
+    "arch": "amd64",
+    "container": true,
+    "ci": true
+  },
+  "runtimes": [
+    { "name": "go", "version": "1.23.2" },
+    { "name": "node", "version": "20.19.0" }
+  ],
+  "variables": [
+    { "key": "CFG_MODE", "state": "present", "sensitive": false, "compare": "value", "value": "production" },
+    { "key": "DATABASE_URL", "state": "absent", "sensitive": true, "compare": "presence" }
+  ],
+  "meta": { "hashAlgorithm": "sha256-canonical-json-v1" },
+  "fingerprint": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+}

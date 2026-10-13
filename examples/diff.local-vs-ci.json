@@ -4,9 +4,36 @@
   "compatible": true,
   "notes": ["variables.DATABASE_URL es sensible: comparada solo por presencia"],
   "changes": [
-    { "path": "environment.profile", "kind": "modified", "a": "local", "b": "ci" },
-    { "path": "runtimes[go].version", "kind": "modified", "a": "1.22.5", "b": "1.23.2" },
-    { "path": "files[package-lock.json]", "kind": "removed", "a": "present" },
-    { "path": "variables[CACHE_DIR].state", "kind": "modified", "a": "absent", "b": "present" }
+    {
+      "path": "environment.profile",
+      "kind": "modified",
+      "severity": "info",
+      "description": "el perfil del entorno difiere en profile",
+      "a": "local",
+      "b": "ci"
+    },
+    {
+      "path": "files[package-lock.json]",
+      "kind": "removed",
+      "severity": "info",
+      "description": "el archivo package-lock.json no fue comprobado en la huella B",
+      "a": "false"
+    },
+    {
+      "path": "runtimes[go].version",
+      "kind": "modified",
+      "severity": "warning",
+      "description": "la versión de go difiere entre entornos",
+      "a": "1.22.5",
+      "b": "1.23.2"
+    },
+    {
+      "path": "variables[CACHE_DIR].state",
+      "kind": "modified",
+      "severity": "warning",
+      "description": "la variable CACHE_DIR está presente en un entorno y ausente en el otro",
+      "a": "absent",
+      "b": "present"
+    }
   ]
 }

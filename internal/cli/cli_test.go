@@ -69,9 +69,8 @@ func TestUnknownCommand(t *testing.T) {
 
 func TestPendingCommandsDoNotFpretend(t *testing.T) {
 	cases := map[string][]string{
-		"compare": {"compare", "a.json", "b.json"},
-		"check":   {"check"},
-		"report":  {"report", "a.json"},
+		"check":  {"check"},
+		"report": {"report", "a.json"},
 	}
 	for name, args := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -140,8 +139,9 @@ func TestScanFlagsParse(t *testing.T) {
 }
 
 func TestCompareFlagsParse(t *testing.T) {
+	// Flags parse fine; the failure must be a file error, not a flag error.
 	code, _, errOut := run(t, "compare", "--json", "--exit-code", "a.json", "b.json")
-	if code != ExitUsage || !strings.Contains(errOut, "pendiente de implementación") {
+	if code != ExitUsage || !strings.Contains(errOut, "no se pudo leer la huella") {
 		t.Fatalf("exit=%d stderr=%q", code, errOut)
 	}
 }

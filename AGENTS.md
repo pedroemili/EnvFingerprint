@@ -25,8 +25,9 @@ export PATH=/tmp/opencode/go-sdk/bin:$PATH
 ## Reglas del proyecto (del usuario, obligatorias)
 
 - **Trabajo por fases**: no implementes funcionalidad de fases futuras
-  (compare/check/report están pendientes a propósito; deben devolver exit 2 con
-  mensaje "pendiente de implementación" hasta su fase).
+  (check/report están pendientes a propósito; deben devolver exit 2 con
+  mensaje "pendiente de implementación" hasta su fase). `scan` y `compare`
+  ya están implementados.
 - **Ningún commit/push sin autorización explícita del usuario.** `git init` ya
   está hecho y hay archivos staged, pero no se ha commiteado nada.
 - **Cero dependencias externas** es requisito del MVP. No añadas imports fuera

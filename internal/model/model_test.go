@@ -277,7 +277,8 @@ func TestDiffInvalid(t *testing.T) {
 		Schema:     SchemaVersion,
 		Compatible: true,
 		Notes:      []string{},
-		Changes:    []Change{{Path: "environment.os", Kind: ChangeModified, A: "linux", B: "darwin"}},
+		Changes: []Change{{Path: "environment.os", Kind: ChangeModified, Severity: SeverityInfo,
+			Description: "el sistema operativo difiere", A: "linux", B: "darwin"}},
 	}
 	if err := ok.Validate(); err != nil {
 		t.Fatalf("baseline diff must be valid: %v", err)

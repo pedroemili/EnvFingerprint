@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/envfingerprint/envfingerprint/internal/collector"
+	"github.com/envfingerprint/envfingerprint/internal/compare"
 	"github.com/envfingerprint/envfingerprint/internal/fingerprint"
 	"github.com/envfingerprint/envfingerprint/internal/model"
 	"github.com/envfingerprint/envfingerprint/internal/redact"
@@ -131,10 +132,14 @@ Opciones:
 var compareUsage = commandUsage("compare", `[opciones] <huella-a.json> <huella-b.json>
 
 Compara dos huellas de entorno e informa de las diferencias por secciones.
+Las variables sensibles se comparan solo por presencia; sus valores nunca
+aparecen en la salida.
 
 Opciones:
   --json          emite el resultado como JSON (esquema diff v1)
-  --exit-code     devuelve 1 si hay diferencias (por defecto devuelve 0)`)
+  --rules <ruta>  reglas del proyecto para clasificar severidades y dar
+                  sugerencias (por defecto .envfingerprint.json si existe)
+  --exit-code     devuelve 1 si hay diferencias, 2 si son incompatibles`)
 
 var checkUsage = commandUsage("check", `[opciones]
 
@@ -354,6 +359,7 @@ func cmdCompare(args []string, stdout, stderr io.Writer) int {
 	fs := newFlagSet("compare")
 	asJSON := fs.Bool("json", false, "")
 	exitCode := fs.Bool("exit-code", false, "")
+	rulesPath := fs.String("rules", "", "")
 	help, err := parse("compare", compareUsage, fs, args, stdout)
 	if help {
 		return ExitOK
@@ -366,9 +372,81 @@ func cmdCompare(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "error: compare requiere exactamente 2 huellas JSON, recibidas %d\n\n%s\n", fs.NArg(), compareUsage)
 		return ExitUsage
 	}
-	_ = *asJSON
-	_ = *exitCode
-	return pending(stderr, "compare", "motor de comparación en fase posterior")
+
+	a, err := loadFingerprintFile(fs.Arg(0))
+	if err != nil {
+		fmt.Fprintf(stderr, "error: %v\n", err)
+		return ExitUsage
+	}
+	b, err := loadFingerprintFile(fs.Arg(1))
+	if err != nil {
+		fmt.Fprintf(stderr, "error: %v\n", err)
+		return ExitUsage
+	}
+
+	// Rules are optional for compare: they only upgrade severities and add
+	// grounded advice. An absent default file is fine; an explicitly given
+	// missing file is an error.
+	var rules *model.Rules
+	rulesGiven := false
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name == "rules" {
+			rulesGiven = true
+		}
+	})
+	if rulesGiven {
+		rules, err = loadRules(*rulesPath, true)
+		if err != nil {
+			fmt.Fprintf(stderr, "error: %v\n", err)
+			return ExitUsage
+		}
+	} else if _, err := os.Stat(".envfingerprint.json"); err == nil {
+		rules, err = loadRules(".envfingerprint.json", true)
+		if err != nil {
+			fmt.Fprintf(stderr, "error: %v\n", err)
+			return ExitUsage
+		}
+	}
+
+	diff, err := compare.Compare(a, b, rules)
+	if err != nil {
+		fmt.Fprintf(stderr, "error: %v\n", err)
+		return ExitUsage
+	}
+
+	if *asJSON {
+		data, err := json.MarshalIndent(diff, "", "  ")
+		if err != nil {
+			fmt.Fprintf(stderr, "error: no se pudo serializar el diff: %v\n", err)
+			return ExitUsage
+		}
+		stdout.Write(append(data, '\n'))
+	} else {
+		fmt.Fprint(stdout, compare.FormatHuman(diff))
+	}
+
+	if *exitCode {
+		switch {
+		case !diff.Compatible:
+			return ExitUsage
+		case !diff.Equal:
+			return ExitViolation
+		}
+	}
+	return ExitOK
+}
+
+func loadFingerprintFile(path string) (*model.Fingerprint, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("no se pudo leer la huella %q: %w", path, err)
+	}
+	// Tolerant decoding: unknown fields are ignored per docs/CONTRACTS.md §4.
+	fp, err := model.LoadFingerprint(data, false)
+	if err != nil {
+		return nil, fmt.Errorf("huella %q inválida: %w", path, err)
+	}
+	return fp, nil
 }
 
 func cmdCheck(args []string, stdout, stderr io.Writer) int {

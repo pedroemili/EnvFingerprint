@@ -1,0 +1,7 @@
+{
+  "schema": 2,
+  "tool": { "name": "envfingerprint", "version": "9.9.9" },
+  "environment": { "profile": "local", "os": "linux", "arch": "amd64", "container": false, "ci": false },
+  "meta": { "hashAlgorithm": "sha256-canonical-json-v2" },
+  "fingerprint": ""
+}

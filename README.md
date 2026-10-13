@@ -4,18 +4,18 @@ CLI multiplataforma en Go para detectar y explicar diferencias relevantes entre
 entornos de desarrollo, contenedores y CI.
 
 **Estado: MVP en construcción.** El contrato de datos v1 está cerrado
-(`docs/CONTRACTS.md`). `scan` ya recolecta el entorno (SO/arquitectura,
-runtimes go/node/python/dotnet, archivos del proyecto y variables declaradas)
-y emite huellas JSON válidas; el hash reproducible, `compare`, `check` y
-`report` están pendientes y responden explícitamente con exit 2.
+(`docs/CONTRACTS.md`). `scan` recolecta el entorno y emite huellas JSON
+válidas con hash reproducible; `compare` produce diferencias estructuradas con
+severidades (`--json`, `--exit-code`, `--rules`); `check` y `report` están
+pendientes y responden explícitamente con exit 2.
 
 ## Uso
 
 ```
 envfingerprint --help
 envfingerprint --version
-envfingerprint scan [--rules .envfingerprint.json] [--out huella.json]
-envfingerprint compare [--json] [--exit-code] a.json b.json
+envfingerprint scan [--rules .envfingerprint.json] [--out huella.json] [--dry-run]
+envfingerprint compare [--json] [--exit-code] [--rules rules.json] a.json b.json
 envfingerprint check [--rules .envfingerprint.json]
 envfingerprint report [--format md|txt] huella-o-diff.json
 ```

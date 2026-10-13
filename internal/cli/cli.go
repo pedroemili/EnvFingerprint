@@ -13,11 +13,14 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/envfingerprint/envfingerprint/internal/collector"
 	"github.com/envfingerprint/envfingerprint/internal/fingerprint"
 	"github.com/envfingerprint/envfingerprint/internal/model"
+	"github.com/envfingerprint/envfingerprint/internal/redact"
 	"github.com/envfingerprint/envfingerprint/internal/version"
 )
 
@@ -121,7 +124,9 @@ Inspecciona el entorno actual y emite una huella JSON conforme al esquema v1.
 Opciones:
   --rules <ruta>   archivo de reglas que declara variables, herramientas y
                    archivos a inspectar (por defecto .envfingerprint.json)
-  --out <ruta>     escribe la huella en un archivo en lugar de stdout`)
+  --out <ruta>     escribe la huella en un archivo en lugar de stdout
+  --dry-run        muestra el plan de recolección sin leer valores ni
+                   escribir archivos (previsualización de seguridad)`)
 
 var compareUsage = commandUsage("compare", `[opciones] <huella-a.json> <huella-b.json>
 
@@ -163,6 +168,7 @@ func cmdScan(args []string, stdout, stderr io.Writer) int {
 	fs := newFlagSet("scan")
 	rulesPath := fs.String("rules", ".envfingerprint.json", "")
 	outPath := fs.String("out", "", "")
+	dryRun := fs.Bool("dry-run", false, "")
 	help, err := parse("scan", scanUsage, fs, args, stdout)
 	if help {
 		return ExitOK
@@ -188,6 +194,10 @@ func cmdScan(args []string, stdout, stderr io.Writer) int {
 		return ExitUsage
 	}
 
+	if *dryRun {
+		return previewScan(stdout, rules)
+	}
+
 	root, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintf(stderr, "error: no se pudo determinar el directorio del proyecto: %v\n", err)
@@ -205,6 +215,15 @@ func cmdScan(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitUsage
+	}
+
+	// Security barrier before anything leaves the process: enforce that no
+	// sensitive variable carries a value, even if a collector misbehaved.
+	classifier := redact.NewClassifier(rules.Variables)
+	clean, fixed := classifier.Scrub(res.Fingerprint)
+	res.Fingerprint = clean
+	for _, key := range fixed {
+		fmt.Fprintf(stderr, "aviso: la variable sensible %s se forzó a solo-presencia\n", key)
 	}
 
 	if err := fingerprint.Apply(res.Fingerprint, fingerprint.DefaultPolicy); err != nil {
@@ -232,6 +251,66 @@ func cmdScan(args []string, stdout, stderr io.Writer) int {
 		return ExitUsage
 	}
 	fmt.Fprintf(stdout, "huella escrita en %s\n", *outPath)
+	return ExitOK
+}
+
+// previewScan prints the collection plan WITHOUT reading any environment
+// value, probing any tool or writing any file. It exists so users can audit
+// exactly what a scan would export — including the sensitive classification
+// of each declared variable — before allowing it.
+func previewScan(stdout io.Writer, rules *model.Rules) int {
+	classifier := redact.NewClassifier(rules.Variables)
+
+	tools := toolNames(rules)
+	if len(tools) == 0 {
+		tools = []string{"go", "node", "python", "dotnet"}
+	}
+	fmt.Fprintln(stdout, "plan de recolección (vista previa: no se lee ni escribe nada)")
+	fmt.Fprintln(stdout, "")
+	fmt.Fprintf(stdout, "herramientas a sondear: %s\n", strings.Join(tools, ", "))
+
+	files := rules.Files
+	if len(files) == 0 {
+		files = collector.DefaultFilePaths()
+	}
+	fmt.Fprintln(stdout, "archivos a comprobar (solo presencia salvo indicación):")
+	for _, f := range files {
+		note := ""
+		if asSet(rules.FileDigests)[f] {
+			note = " (también digest sha256 del contenido)"
+		}
+		fmt.Fprintf(stdout, "  - %s%s\n", f, note)
+	}
+
+	fmt.Fprintln(stdout, "variables a comprobar:")
+	keys := map[string]bool{}
+	for _, k := range rules.Variables.Required {
+		keys[k] = true
+	}
+	for _, k := range rules.Variables.CompareValues {
+		keys[k] = true
+	}
+	for _, k := range rules.Variables.Sensitive {
+		keys[k] = true
+	}
+	if len(keys) == 0 {
+		fmt.Fprintln(stdout, "  (ninguna declarada; NO se enumeran variables del proceso)")
+	}
+	var sorted []string
+	for k := range keys {
+		sorted = append(sorted, k)
+	}
+	sort.Strings(sorted)
+	for _, k := range sorted {
+		switch {
+		case classifier.Sensitive(k):
+			fmt.Fprintf(stdout, "  - %s [SENSIBLE: solo presencia, nunca valor]\n", k)
+		case asSet(rules.Variables.CompareValues)[k]:
+			fmt.Fprintf(stdout, "  - %s [no sensible: se registrará y comparará el valor]\n", k)
+		default:
+			fmt.Fprintf(stdout, "  - %s [no sensible: solo presencia]\n", k)
+		}
+	}
 	return ExitOK
 }
 

@@ -6,10 +6,10 @@ Layout del proyecto y decisiones asociadas. Si algo cambia, actualiza este archi
 cmd/envfingerprint/     Punto de entrada. Solo delega en internal/cli.
 internal/cli/           Dispatch de subcomandos, flags, ayuda, códigos de salida.
 internal/model/         Contratos de datos (huella, reglas, diff) + validación.
-internal/collector/     Recolección de hechos del entorno (system, tools, files, variables).
+internal/collector/     Recolección de hechos (system, tools, files, variables) vía interfaces Env/Proc/FS.
 internal/fingerprint/   Proyección, serialización canónica y hash SHA-256 reproducible (Policy explícita).
 internal/compare/       (pendiente) Comparación estructural de huellas.
-internal/redact/        (pendiente) Política de redacción de secretos.
+internal/redact/        Clasificador de sensibilidad + Scrub (barrera antes de serializar).
 internal/rules/         (pendiente) Evaluación de reglas del proyecto.
 internal/report/        (pendiente) Informes legibles (md/txt).
 schemas/                Esquemas JSON (draft 2020-12) de los 3 documentos.

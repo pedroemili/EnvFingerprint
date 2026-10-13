@@ -8,6 +8,8 @@ import "path"
 var DefaultSensitivePatterns = []string{
 	"*_TOKEN", "*_SECRET", "*_PASSWORD", "*_KEY", "*_CREDENTIALS", "*_PASS",
 	"*_URL", "*_URI", "*_DSN", // conexiones que suelen llevar credenciales incrustadas
+	// Nombres exactos frecuentes sin prefijo de proyecto:
+	"PASSWORD", "TOKEN", "SECRET", "API_KEY", "PRIVATE_KEY",
 }
 
 // Rules is the project rules document (.envfingerprint.json, schema v1).
@@ -29,6 +31,10 @@ type VariableRules struct {
 	// CompareValues names non-sensitive variables whose values may be
 	// recorded and compared. Naming a sensitive variable here is an error.
 	CompareValues []string `json:"compareValues,omitempty"`
+	// Sensitive names variables that must be treated as secret exactly,
+	// in addition to pattern-based classification. Declaring one also adds
+	// it to the collected set as presence-only.
+	Sensitive []string `json:"sensitive,omitempty"`
 	// SensitivePatterns extend DefaultSensitivePatterns (glob, uppercase suffix style).
 	SensitivePatterns []string `json:"sensitivePatterns,omitempty"`
 }
@@ -93,10 +99,15 @@ func (r *Rules) Validate() error {
 		if !envKeyPattern.MatchString(key) {
 			errs = append(errs, errf("variables.compareValues[%d]: invalid environment variable name %q", i, key))
 		}
-		if IsSensitive(key, r.Variables.SensitivePatterns) {
+		if IsSensitive(key, r.Variables.SensitivePatterns) || asSetStr(r.Variables.Sensitive)[key] {
 			// Security rule: a sensitive variable must never be value-compared,
 			// otherwise its value would end up recorded in fingerprints.
-			errs = append(errs, errf("variables.compareValues[%d]: %q matches a sensitive pattern; its value must never be recorded", i, key))
+			errs = append(errs, errf("variables.compareValues[%d]: %q es sensible; su valor nunca puede registrarse", i, key))
+		}
+	}
+	for i, key := range r.Variables.Sensitive {
+		if !envKeyPattern.MatchString(key) {
+			errs = append(errs, errf("variables.sensitive[%d]: invalid environment variable name %q", i, key))
 		}
 	}
 	for i, pat := range r.Variables.SensitivePatterns {
@@ -157,4 +168,12 @@ func (r *Rules) Validate() error {
 		return errs
 	}
 	return nil
+}
+
+func asSetStr(xs []string) map[string]bool {
+	m := make(map[string]bool, len(xs))
+	for _, x := range xs {
+		m[x] = true
+	}
+	return m
 }

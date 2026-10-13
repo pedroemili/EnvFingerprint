@@ -134,7 +134,8 @@ usuario, hostname ni direcciones IP. Si en el futuro se añaden (p. ej. un campo
 | `schema` | obligatorio | `1`. |
 | `variables.required` | opcional | Variables que deben existir; su ausencia hace fallar `validate` (exit 1). Solo se comprueba presencia, nunca valor. |
 | `variables.compareValues` | opcional | Subconjunto de requeridas (u otras) cuyos valores **no sensibles** pueden registrarse y compararse. Un error de validación impide que una variable sensible aparezca aquí. |
-| `variables.sensitivePatterns` | opcional | Patrones glob adicionales de nombres sensibles; se unen a los por defecto (`*_TOKEN`, `*_SECRET`, `*_KEY`, `*_PASSWORD`, `*_PASS`, `*_CREDENTIALS`, `*_URL`, `*_URI`, `*_DSN`). |
+| `variables.sensitive` | opcional | Nombres exactos que el proyecto declara sensibles (para nombres que no casan con los patrones). Se añaden al conjunto recolectado como solo-presencia. |
+| `variables.sensitivePatterns` | opcional | Patrones glob adicionales de nombres sensibles; se unen a los por defecto (`*_TOKEN`, `*_SECRET`, `*_KEY`, `*_PASSWORD`, `*_PASS`, `*_CREDENTIALS`, `*_URL`, `*_URI`, `*_DSN`, y los exactos `PASSWORD`, `TOKEN`, `SECRET`, `API_KEY`, `PRIVATE_KEY`). |
 | `tools[].name` / `tools[].minVersion` | obligatorio/opcional | Runtime a comprobar y versión mínima semver (`MAJOR.MINOR.PATCH`). La comparación de versiones es semver estricta sobre la versión normalizada. |
 | `files` | opcional | Archivos (rutas relativas) cuya presencia se registra. |
 | `fileDigests` | opcional | Subconjunto de `files` del que además se calcula digest de contenido. |

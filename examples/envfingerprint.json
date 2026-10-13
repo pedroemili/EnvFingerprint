@@ -3,6 +3,7 @@
   "variables": {
     "required": ["CONFIG_PROVIDER", "DATABASE_URL"],
     "compareValues": ["CONFIG_PROVIDER"],
+    "sensitive": ["CUSTOM_SIGNING_MATERIAL"],
     "sensitivePatterns": ["*_API_TOKEN"]
   },
   "tools": [

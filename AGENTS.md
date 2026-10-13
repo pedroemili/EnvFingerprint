@@ -46,8 +46,13 @@ export PATH=/tmp/opencode/go-sdk/bin:$PATH
   en `cli` ni en `collector`: causaba un ciclo de imports.
 - Collector: NUNCA enumerar el entorno completo, leer `.env`, ejecutar scripts
   del proyecto ni recorrer el FS (lista fija de archivos + rutas relativas
-  validadas). Variables sensibles (ver `model.DefaultSensitivePatterns`) son
-  solo-presencia, con defensa en profundidad en `variablesCollector`.
+  validadas). Variables sensibles: clasificador unificado en `internal/redact`
+  (`model.DefaultSensitivePatterns` + `variables.sensitive`/`sensitivePatterns`
+  de las reglas) y tres capas de defensa: validación de reglas,
+  `variablesCollector` y `redact.Scrub` justo antes de hashear/serializar.
+  Nunca hashes de secretos ni valores en argumentos de comandos externos.
+  `scan --dry-run` = vista previa del plan sin leer valores; la auditoría
+  anti-fugas vive en `tests/security_test.go`.
 - Hash (`internal/fingerprint`): se computa sobre una **proyección canónica**,
   nunca sobre el JSON del documento. Ausente ≡ vacío ≡ null en el hash.
   `TestGoldenHash` es una regresión intencionada: si falla porque la receta

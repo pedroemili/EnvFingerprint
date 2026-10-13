@@ -32,6 +32,15 @@ var DefaultFiles = []struct {
 	{".dockerignore", model.FileKindConfig},
 }
 
+// DefaultFilePaths returns the fixed default list of project files.
+func DefaultFilePaths() []string {
+	var out []string
+	for _, f := range DefaultFiles {
+		out = append(out, f.Path)
+	}
+	return out
+}
+
 // maxDigestFileSize bounds files read for content digests (rules.fileDigests).
 const maxDigestFileSize = 10 << 20
 

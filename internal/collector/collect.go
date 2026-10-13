@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/envfingerprint/envfingerprint/internal/model"
+	"github.com/envfingerprint/envfingerprint/internal/redact"
 	"github.com/envfingerprint/envfingerprint/internal/version"
 )
 
@@ -48,10 +49,10 @@ func Collect(ctx context.Context, deps Deps, opts Options) (*Result, error) {
 	res.Diagnostics = append(res.Diagnostics, d...)
 
 	vars := variablesCollector{
-		env:            deps.Env,
-		declared:       declaredSet(opts.Variables),
-		compareValues:  asSet(opts.Variables.CompareValues),
-		sensitiveExtra: opts.Variables.SensitivePatterns,
+		env:        deps.Env,
+		declared:   declaredSet(opts.Variables),
+		compareSet: asSet(opts.Variables.CompareValues),
+		classifier: redact.NewClassifier(opts.Variables),
 	}
 	vs, d := vars.Collect()
 	fp.Variables = vs
@@ -94,6 +95,9 @@ func selectFiles(opts Options) []fileSpec {
 func declaredSet(v model.VariableRules) map[string]bool {
 	set := asSet(v.Required)
 	for _, k := range v.CompareValues {
+		set[k] = true
+	}
+	for _, k := range v.Sensitive {
 		set[k] = true
 	}
 	return set

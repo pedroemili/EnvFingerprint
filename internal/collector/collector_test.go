@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/envfingerprint/envfingerprint/internal/model"
+	"github.com/envfingerprint/envfingerprint/internal/redact"
 )
 
 // --- Fakes ---
@@ -240,10 +241,10 @@ func TestVariablesCollector(t *testing.T) {
 		"DB_TOKEN":     "valor-secreto",
 	}
 	c := variablesCollector{
-		env:            env,
-		declared:       map[string]bool{"CFG_PROVIDER": true, "DB_TOKEN": true, "MISSING_ONE": true},
-		compareValues:  map[string]bool{"CFG_PROVIDER": true, "DB_TOKEN": true},
-		sensitiveExtra: nil,
+		env:        env,
+		declared:   map[string]bool{"CFG_PROVIDER": true, "DB_TOKEN": true, "MISSING_ONE": true},
+		compareSet: map[string]bool{"CFG_PROVIDER": true, "DB_TOKEN": true},
+		classifier: redact.NewClassifier(model.VariableRules{}),
 	}
 	vars, diags := c.Collect()
 	if diags != nil {

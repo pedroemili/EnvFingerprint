@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://envfingerprint.dev/schemas/fingerprint.schema.json",
+  "title": "EnvFingerprint environment fingerprint, schema v1",
+  "type": "object",
+  "required": ["schema", "tool", "environment", "meta", "fingerprint"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": 1 },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "const": "envfingerprint" },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "required": ["profile", "os", "arch", "container", "ci"],
+      "additionalProperties": false,
+      "properties": {
+        "profile": { "enum": ["local", "container", "ci", "unknown"] },
+        "os": { "type": "string", "pattern": "^[a-z0-9]+$" },
+        "arch": { "type": "string", "pattern": "^[a-z0-9]+$" },
+        "container": { "type": "boolean" },
+        "ci": { "type": "boolean" }
+      }
+    },
+    "runtimes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "version"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z0-9._-]+$" },
+          "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$" },
+          "raw": { "type": "string" },
+          "source": { "type": "string" }
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind", "present"],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "not": { "pattern": "^(/|[A-Za-z]:|.*\\.\\.)" },
+            "description": "Ruta relativa con separador '/', sin '..' ni absolutas"
+          },
+          "kind": { "enum": ["config", "lockfile"] },
+          "present": { "type": "boolean" },
+          "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "state", "sensitive", "compare"],
+        "additionalProperties": false,
+        "properties": {
+          "key": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+          "state": { "enum": ["present", "absent"] },
+          "sensitive": { "type": "boolean" },
+          "compare": { "enum": ["presence", "value"] },
+          "value": { "type": "string" }
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "required": ["hashAlgorithm"],
+      "additionalProperties": false,
+      "properties": {
+        "hashAlgorithm": { "const": "sha256-canonical-json-v1" }
+      }
+    },
+    "fingerprint": { "type": "string", "pattern": "^(sha256:[0-9a-f]{64})?$" }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "variables": {
+    "required": ["CONFIG_PROVIDER", "DATABASE_URL"],
+    "compareValues": ["CONFIG_PROVIDER"],
+    "sensitivePatterns": ["*_API_TOKEN"]
+  },
+  "tools": [
+    { "name": "go", "minVersion": "1.22.0" },
+    { "name": "node", "minVersion": "20.0.0" }
+  ],
+  "files": ["go.mod", "go.sum"],
+  "fileDigests": ["go.sum"],
+  "compare": {
+    "sections": ["environment", "runtimes", "files", "variables"]
+  },
+  "expectedFingerprint": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+}

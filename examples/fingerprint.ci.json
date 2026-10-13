@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "tool": { "name": "envfingerprint", "version": "0.1.0" },
+  "environment": {
+    "profile": "ci",
+    "os": "linux",
+    "arch": "amd64",
+    "container": false,
+    "ci": true
+  },
+  "runtimes": [
+    { "name": "go", "version": "1.23.2", "raw": "go version go1.23.2 linux/amd64", "source": "go version" },
+    { "name": "node", "version": "20.9.0", "raw": "v20.9.0", "source": "node --version" }
+  ],
+  "files": [
+    { "path": "go.mod", "kind": "config", "present": true },
+    { "path": "go.sum", "kind": "lockfile", "present": true, "digest": "sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" },
+    { "path": "package-lock.json", "kind": "lockfile", "present": false }
+  ],
+  "variables": [
+    { "key": "CACHE_DIR", "state": "absent", "sensitive": false, "compare": "presence" },
+    { "key": "DATABASE_URL", "state": "present", "sensitive": true, "compare": "presence" },
+    { "key": "NODE_ENV", "state": "present", "sensitive": false, "compare": "value", "value": "production" }
+  ],
+  "meta": { "hashAlgorithm": "sha256-canonical-json-v1" },
+  "fingerprint": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+}

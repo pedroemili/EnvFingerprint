@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://envfingerprint.dev/schemas/diff.schema.json",
+  "title": "EnvFingerprint diff result, schema v1",
+  "type": "object",
+  "required": ["schema", "equal", "compatible", "notes", "changes"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": 1 },
+    "equal": { "type": "boolean" },
+    "compatible": { "type": "boolean" },
+    "notes": { "type": "array", "items": { "type": "string" } },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["added", "removed", "modified"] },
+          "a": { "type": "string" },
+          "b": { "type": "string" }
+        }
+      }
+    }
+  }
+}

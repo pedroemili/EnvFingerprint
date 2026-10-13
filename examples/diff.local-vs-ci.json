@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "equal": false,
+  "compatible": true,
+  "notes": ["variables.DATABASE_URL es sensible: comparada solo por presencia"],
+  "changes": [
+    { "path": "environment.profile", "kind": "modified", "a": "local", "b": "ci" },
+    { "path": "runtimes[go].version", "kind": "modified", "a": "1.22.5", "b": "1.23.2" },
+    { "path": "files[package-lock.json]", "kind": "removed", "a": "present" },
+    { "path": "variables[CACHE_DIR].state", "kind": "modified", "a": "absent", "b": "present" }
+  ]
+}

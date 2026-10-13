@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/envfingerprint/envfingerprint/internal/collector"
+	"github.com/envfingerprint/envfingerprint/internal/fingerprint"
 	"github.com/envfingerprint/envfingerprint/internal/model"
 	"github.com/envfingerprint/envfingerprint/internal/version"
 )
@@ -206,11 +207,13 @@ func cmdScan(args []string, stdout, stderr io.Writer) int {
 		return ExitUsage
 	}
 
+	if err := fingerprint.Apply(res.Fingerprint, fingerprint.DefaultPolicy); err != nil {
+		fmt.Fprintf(stderr, "error: no se pudo calcular el hash de la huella: %v\n", err)
+		return ExitUsage
+	}
+
 	for _, d := range res.Diagnostics {
 		fmt.Fprintf(stderr, "aviso: %s\n", d)
-	}
-	if res.Fingerprint.Fingerprint == "" {
-		fmt.Fprintln(stderr, "aviso: el campo fingerprint (hash) se calculará en la fase de hashing; ahora está vacío")
 	}
 
 	data, err := json.MarshalIndent(res.Fingerprint, "", "  ")

@@ -143,6 +143,27 @@ func TestScanEndToEnd(t *testing.T) {
 			t.Errorf("versión no normalizada: %+v", rt)
 		}
 	}
+	if fp.Fingerprint == "" || !strings.HasPrefix(fp.Fingerprint, "sha256:") {
+		t.Errorf("la huella debe llevar hash sha256: %q", fp.Fingerprint)
+	}
+
+	// Regression: a second scan in the same environment must reproduce the
+	// exact same hash (determinism end-to-end via the CLI).
+	out2 := filepath.Join(dir, "fp2.json")
+	if code, _, errOut := invoke("scan", "--out", out2); code != cli.ExitOK {
+		t.Fatalf("segundo scan: exit=%d stderr=%q", code, errOut)
+	}
+	data2, err := os.ReadFile(out2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fp2, err := model.LoadFingerprint(data2, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fp2.Fingerprint != fp.Fingerprint {
+		t.Errorf("scan no determinista:\n  %s\n  %s", fp.Fingerprint, fp2.Fingerprint)
+	}
 }
 
 // TestScanStdout writes to stdout when --out is absent.

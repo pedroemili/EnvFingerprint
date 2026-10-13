@@ -30,8 +30,7 @@ func Collect(ctx context.Context, deps Deps, opts Options) (*Result, error) {
 		Schema: model.SchemaVersion,
 		Tool:   model.Tool{Name: "envfingerprint", Version: version.Version},
 		Meta:   model.Meta{HashAlgorithm: model.HashAlgorithm},
-		// Fingerprint hash intentionally empty: canonical hashing is filled
-		// in by internal/fingerprint in a later phase (valid per contract).
+		// Fingerprint is stamped by the caller (cli) via fingerprint.Apply.
 	}
 	res := &Result{Fingerprint: fp}
 

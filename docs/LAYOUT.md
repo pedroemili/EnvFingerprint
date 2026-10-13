@@ -7,7 +7,7 @@ cmd/envfingerprint/     Punto de entrada. Solo delega en internal/cli.
 internal/cli/           Dispatch de subcomandos, flags, ayuda, códigos de salida.
 internal/model/         Contratos de datos (huella, reglas, diff) + validación.
 internal/collector/     Recolección de hechos del entorno (system, tools, files, variables).
-internal/fingerprint/   (pendiente) Serialización canónica y hash reproducible.
+internal/fingerprint/   Proyección, serialización canónica y hash SHA-256 reproducible (Policy explícita).
 internal/compare/       (pendiente) Comparación estructural de huellas.
 internal/redact/        (pendiente) Política de redacción de secretos.
 internal/rules/         (pendiente) Evaluación de reglas del proyecto.

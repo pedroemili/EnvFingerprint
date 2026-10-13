@@ -1,0 +1,29 @@
+# Binarios
+/bin/
+envfingerprint
+envfingerprint.exe
+
+# Cobertura y resultados de tests
+*.out
+*.test
+coverage.html
+
+# Archivos de entorno (este proyecto trata con secretos del entorno)
+.env
+.env.*
+!.env.example
+
+# IDE / editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Go workspace
+go.work
+go.work.sum

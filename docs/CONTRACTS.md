@@ -79,9 +79,23 @@ autoritativa la implementa `internal/model` (sin dependencias externas).
 ### Clasificación de campos
 
 - **Obligatorios**: sin ellos el documento es inválido.
-- **Opcionales**: secciones ausentes se omiten del JSON (`omitempty`); su ausencia no equivale a lista vacía en comparaciones (ver §3).
+- **Opcionales**: secciones ausentes se omiten del JSON (`omitempty`). En el **hash**, ausente, vacío (`[]`) y `null` son equivalentes (todos se omiten de la representación canónica) para garantizar reproducibilidad entre productores y marshallers. El motor de **diff** puede distinguir documentalmente ausente de vacío, pero esa distinción nunca altera el hash (ver §3).
 - **Volátiles** (`runtimes[].raw`, `tool.version`, `meta`): útiles para humanos, excluidos del hash para garantizar reproducibilidad entre máquinas y versiones de la herramienta.
 - **Sensibles** (`variables[].value` con `sensitive: true`): **prohibidos**. Ningún documento, log ni mensaje de error puede contener valores de secretos. No se calculan hashes de secretos (un hash de un valor de baja entropía es atacable por diccionario); los secretos se comparan solo por **presencia/ausencia**.
+
+### Cómputo del hash (`sha256-canonical-json-v1`)
+
+`internal/fingerprint` calcula el hash exactamente en este orden:
+
+1. **Proyección**: solo los campos marcados "En hash: sí". Por construcción quedan fuera `schema`, `tool.*`, `meta.*`, `runtimes[].raw/source`, `variables[].compare`, `fingerprint` y cualquier campo JSON desconocido.
+2. **Selección por política** (`Policy.Sections`): el hash principal usa todas las secciones (`environment`, `runtimes`, `files`, `variables`). `check` y `compare` podrán recalcular con el subconjunto de `rules.compare.sections`; ese *hash de comparación* es deliberadamente distinto del hash del documento.
+3. **Canonicalización**: JSON con claves ordenadas por orden de bytes, sin espacios, sin escapado HTML, UTF-8; arrays ordenados por su clave natural (`name`, `path`, `key`); secciones ausentes/vacías/nulas y campos opcionales vacíos se omiten de forma idéntica.
+4. **Separación de dominios**: entrada del SHA-256 = `"sha256-canonical-json-v1\n" + canonico`.
+
+No se hace **ninguna** normalización semántica de valores en este paso (las versiones y rutas ya vienen normalizadas de la colección y son verificadas por `Validate`): colapsar valores ocultaría diferencias reales.
+
+**El hash garantiza**: dos huellas producen el mismo hash si y solo si sus campos seleccionados son iguales bajo las reglas anteriores.
+**El hash NO garantiza**: identidad de los entornos (hay hechos no recolectados y metadatos fuera del hash) ni integridad/autenticidad (no es una firma).
 
 ### Datos excluidos por diseño
 
